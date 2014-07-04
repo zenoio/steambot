@@ -1,8 +1,9 @@
 #include "ircbot.h"
 #include "steamquery.h"
 
-IrcBot::IrcBot(std::string nick, std::string channel_, std::string server, std::string port, std::string steamhost_, std::string steamport_)
+IrcBot::IrcBot(std::string nick, std::string channel_, std::string server, std::string port, std::string steamhost_, std::string steamport_, std::string owner_)
 {
+	owner = owner_;
 	channel = channel_;
 	steamhost = steamhost_;
 	steamport = steamport_;
@@ -87,15 +88,15 @@ void IrcBot::recievedMessage(std::string msg)
 
 void IrcBot::messageHandler(std::string nick, std::string msg, std::string chan)
 {
-	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower); // to lowercase
+	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
 	std::transform(msg.begin(), msg.end(), msg.begin(), ::tolower);
 	std::transform(chan.begin(), chan.end(), chan.begin(), ::tolower);
 	
 	if (msg.find("!p") == 0 || msg.find("!players") == 0) {
 		SteamQuery query(steamhost, steamport);
 		sendMsg(query.rdy, chan);
-	} else if (nick == "viderizer" && msg.find("!q") == 0) {
-		sendRaw("QUIT :b-b-baka viderizer!!");
+	} else if (nick == owner && msg.find("!q") == 0) {
+		sendRaw("QUIT :b-b-baka " + owner + "!!");
 		connectionClosed = true;
 	}
 }

@@ -12,7 +12,7 @@ int main()
 	
 	std::string owner      = "viderizer"        ;
 
-	IrcBot ircbot(nick, channel, server, port, steamhost, steamport);
+	IrcBot ircbot(nick, channel, server, port, steamhost, steamport, owner);
 
 	return 0;
 }

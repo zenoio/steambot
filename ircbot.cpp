@@ -94,7 +94,11 @@ void IrcBot::messageHandler(std::string nick, std::string msg, std::string chan)
 	
 	if (msg.find("!p") == 0 || msg.find("!players") == 0) {
 		SteamQuery query(steamhost, steamport);
-		sendMsg(query.rdy, chan);
+		if (query.err.empty()) {
+			sendMsg("[" + query.response.game + "] - " + std::to_string((int)query.response.cur[0]) + " / " + std::to_string((int)query.response.max[0]), chan);
+		} else {
+			sendMsg(query.err, chan);
+		}
 	} else if (nick == owner && msg.find("!q") == 0) {
 		sendRaw("QUIT :b-b-baka " + owner + "!!");
 		connectionClosed = true;

@@ -25,21 +25,30 @@ SteamQuery::SteamQuery(std::string server, std::string port)
 	recvsize = recv(socketfd, buffer, 1024, 0);
 	
 	if (recvsize != EWOULDBLOCK && recvsize != EAGAIN && recvsize != 0) {
-		raw = std::string(buffer, buffer + recvsize);
-	
-		int found = raw.find(std::string("\x00", 1));
-		for (int i = 0; i < 4; i++) {
-			raw = raw.substr(found + 1, std::string::npos);
-			found = raw.find(std::string("\x00", 1));
-		}
-		raw = raw.substr(2, 4);
-	
-		int cur = raw[0];
-		int max = raw[1];
-	
-		rdy = "Players: " + std::to_string(cur) + " / " + std::to_string(max);
+		std::string raw = std::string(buffer, buffer + recvsize);
+		
+		response.header      = raw[4];
+		response.protocol    = raw[5];
+		raw = raw.substr(6, std::string::npos);
+		response.name        = raw.substr(0, raw.find(std::string("\x00", 1)));
+		raw = raw.substr(raw.find(std::string("\x00", 1)) + 1, std::string::npos);
+		response.map         = raw.substr(0, raw.find(std::string("\x00", 1)));
+		raw = raw.substr(raw.find(std::string("\x00", 1)) + 1, std::string::npos);
+		response.folder      = raw.substr(0, raw.find(std::string("\x00", 1)));
+		raw = raw.substr(raw.find(std::string("\x00", 1)) + 1, std::string::npos);
+		response.game        = raw.substr(0, raw.find(std::string("\x00", 1)));
+		raw = raw.substr(raw.find(std::string("\x00", 1)) + 1, std::string::npos);
+		response.id          = raw.substr(0, 2);
+		response.cur         = raw[2];
+		response.max         = raw[3];
+		response.bots        = raw[4];
+		response.servertype  = raw[5];
+		response.enviroment  = raw[6];
+		response.visibility  = raw[7];
+		response.vac         = raw[8];
+
 	} else {
-		rdy = "error: server timeout or malformed response";
+		err = "error: server timeout";
 	}
 	
 	freeaddrinfo(res);

@@ -10,41 +10,44 @@ SteamQuery::SteamQuery(std::string configfile)
 		std::getline(cfg, port);
 		cfg.close();
 		
-		struct addrinfo info, *res;
-		struct timeval tv;
-		memset(&info, 0, sizeof(info));
-		unsigned char buffer[1024];
-		int socketfd, recvsize;
-			
-		info.ai_family   = AF_UNSPEC  ;   // IPV4/IPV6
-		info.ai_socktype = SOCK_DGRAM ;   // UDP
-	
-		tv.tv_sec        = 2          ;   // 2 second timeout
-		tv.tv_usec       = 0          ;
-	
-		getaddrinfo(server.c_str(), port.c_str(), &info, &res);
-		socketfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-		connect(socketfd, res->ai_addr, res->ai_addrlen);
-	
-		unsigned char request[] = {0xff, 0xff, 0xff, 0xff, 0x54, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x20, 0x45, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x20, 0x51, 0x75, 0x65, 0x72, 0x79, 0x00};
-	
-		send(socketfd, request, sizeof(request), 0);
-		setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-		recvsize = recv(socketfd, buffer, 1024, 0);
-	
-		if (recvsize != EWOULDBLOCK && recvsize != EAGAIN && recvsize > 15) {
-			if ((int)buffer[4] == 0x49)
-				parseResponse(std::string(buffer, buffer + recvsize));
-			else
-				err = "error: malformed response";
-		} else
-			err = "error: server timeout";
+		if (!server.empty() && !port.empty()) {
 		
-		freeaddrinfo(res);
-		close(socketfd);
-	} else {
-		err = "couldn't open " + configfile;
-	}
+			struct addrinfo info, *res;
+			struct timeval tv;
+			memset(&info, 0, sizeof(info));
+			unsigned char buffer[1024];
+			int socketfd, recvsize;
+				
+			info.ai_family   = AF_UNSPEC  ;   // IPV4/IPV6
+			info.ai_socktype = SOCK_DGRAM ;   // UDP
+		
+			tv.tv_sec        = 2          ;   // 2 second timeout
+			tv.tv_usec       = 0          ;
+		
+			getaddrinfo(server.c_str(), port.c_str(), &info, &res);
+			socketfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+			connect(socketfd, res->ai_addr, res->ai_addrlen);
+	
+			unsigned char request[] = {0xff, 0xff, 0xff, 0xff, 0x54, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x20, 0x45, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x20, 0x51, 0x75, 0x65, 0x72, 0x79, 0x00};
+	
+			send(socketfd, request, sizeof(request), 0);
+			setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+			recvsize = recv(socketfd, buffer, 1024, 0);
+	
+			if (recvsize != EWOULDBLOCK && recvsize != EAGAIN && recvsize > 15) {
+				if ((int)buffer[4] == 0x49)
+					parseResponse(std::string(buffer, buffer + recvsize));
+				else
+					err = "error: malformed response";
+			} else
+				err = "error: server timeout";
+		
+			freeaddrinfo(res);
+			close(socketfd);
+		} else
+			err = "error: invalid port or host specified";
+	} else
+		err = "error: couldn't open " + configfile;
 }
 
 void SteamQuery::parseResponse(std::string raw)

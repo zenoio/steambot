@@ -20,9 +20,9 @@ private:
 	
 	int socketfd;
 	bool joined, connectionClosed;
-	std::string channel, steamhost, steamport, owner;
+	std::vector<std::string> cfg;
 public:
-	IrcBot(std::string nick, std::string channel_, std::string server, std::string port, std::string owner_);
+	IrcBot(std::vector<std::string> cfg_);
 };
 
 #endif // IRCBOT_H

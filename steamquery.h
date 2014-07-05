@@ -30,7 +30,7 @@ public:
 		std::string vac;
 	};
 	
-	SteamQuery(std::string configfile);
+	SteamQuery(std::string server, std::string port);
 	void parseResponse(std::string raw);
 	std::string err;
 	steam_response response;

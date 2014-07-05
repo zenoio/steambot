@@ -1,10 +1,9 @@
 #include "ircbot.h"
 #include "steamquery.h"
 
-IrcBot::IrcBot(std::string nick, std::string channel_, std::string server, std::string port, std::string owner_)
+IrcBot::IrcBot(std::vector<std::string> cfg_)
 {
-	owner = owner_;
-	channel = channel_;
+	cfg = cfg_;
 	joined = false;
 	connectionClosed = false;
 	int status, recvsize;
@@ -16,7 +15,7 @@ IrcBot::IrcBot(std::string nick, std::string channel_, std::string server, std::
 	info.ai_family   = AF_UNSPEC;   // IPV4/IPV6
 	info.ai_socktype = SOCK_STREAM; // TCP
 	
-	status = getaddrinfo(server.c_str(), port.c_str(), &info, &res);
+	status = getaddrinfo(cfg[4].c_str(), cfg[5].c_str(), &info, &res);
 	if (status != 0)
 		connectionClosed = true;
 	socketfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
@@ -24,8 +23,8 @@ IrcBot::IrcBot(std::string nick, std::string channel_, std::string server, std::
 	if (status != 0)
 		connectionClosed = true;
 	
-	sendRaw("USER " + nick + " 0 * :" + nick);
-	sendRaw("NICK " + nick);
+	sendRaw("USER " + cfg[2] + " 0 * :" + cfg[2]);
+	sendRaw("NICK " + cfg[2]);
 	
 	while (!connectionClosed) {
 		recvsize = recv(socketfd, buffer, 1024, 0);
@@ -71,7 +70,7 @@ void IrcBot::recievedMessage(std::string msg)
 		if (lines[i].find("PING") == 0) {
 			sendRaw("PONG :" + lines[i].substr(lines[i].find(":") + 1, std::string::npos));
 		} else if (!joined && lines[i].substr(lines[i].find(" ") + 1, 3) == "001") {
-			sendRaw("JOIN " + channel);
+			sendRaw("JOIN " + cfg[3]);
 			joined = true;
 		} else if (lines[i].find("PRIVMSG") == lines[i].find(" ") + 1) {
 			std::string nick = lines[i].substr(1, lines[i].find("!") - 1);
@@ -91,14 +90,14 @@ void IrcBot::messageHandler(std::string nick, std::string msg, std::string chan)
 	std::transform(chan.begin(), chan.end(), chan.begin(), ::tolower);
 	
 	if (msg.find("!p") == 0 || msg.find("!players") == 0) {
-		SteamQuery query("config.cfg");
+		SteamQuery query(cfg[0], cfg[1]);
 		if (query.err.empty()) {
 			sendMsg("players: " + std::to_string((int)query.response.cur[0]) + " / " + std::to_string((int)query.response.max[0]) + " -- other info - name: " + query.response.name + " - os: " + query.response.enviroment, chan);
 		} else {
 			sendMsg(query.err, chan);
 		}
-	} else if (nick == owner && msg.find("!q") == 0) {
-		sendRaw("QUIT :b-b-baka " + owner + "!!");
+	} else if (nick == cfg[6] && msg.find("!q") == 0) {
+		sendRaw("QUIT :b-b-baka " + cfg[6] + "!!");
 		connectionClosed = true;
 	}
 }

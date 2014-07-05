@@ -31,6 +31,7 @@ public:
 	};
 	
 	SteamQuery(std::string configfile);
+	void parseResponse(std::string raw);
 	std::string err;
 	steam_response response;
 };

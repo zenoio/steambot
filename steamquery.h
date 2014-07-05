@@ -2,6 +2,7 @@
 #define STEAMQUERY_H
 
 #include <iostream>
+#include <fstream>
 #include <cstring>
 #include <vector>
 #include <unistd.h>
@@ -12,7 +13,7 @@
 class SteamQuery
 {
 public:
-	struct steam_response {
+	struct steam_response { // https://developer.valvesoftware.com/wiki/Server_queries
 		std::string header;
 		std::string protocol;
 		std::string name;
@@ -29,7 +30,7 @@ public:
 		std::string vac;
 	};
 	
-	SteamQuery(std::string server, std::string port);
+	SteamQuery(std::string configfile);
 	std::string err;
 	steam_response response;
 };

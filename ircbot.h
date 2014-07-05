@@ -22,7 +22,7 @@ private:
 	bool joined, connectionClosed;
 	std::string channel, steamhost, steamport, owner;
 public:
-	IrcBot(std::string nick, std::string channel_, std::string server, std::string port, std::string steamhost, std::string steamport, std::string owner_);
+	IrcBot(std::string nick, std::string channel_, std::string server, std::string port, std::string owner_);
 };
 
 #endif // IRCBOT_H

@@ -1,13 +1,21 @@
 #include "steamquery.h"
 
-SteamQuery::SteamQuery(std::string server, std::string port)
+SteamQuery::SteamQuery(std::string configfile)
 {
 	struct addrinfo info, *res;
 	struct timeval tv;
 	memset(&info, 0, sizeof(info));
 	unsigned char buffer[1024];
 	int socketfd, recvsize;
-
+	
+	std::string server, port;
+	std::ifstream cfg(configfile);
+	if (cfg.is_open()) {
+		std::getline(cfg, server);
+		std::getline(cfg, port);
+		cfg.close();
+	}
+		
 	info.ai_family   = AF_UNSPEC  ;   // IPV4/IPV6
 	info.ai_socktype = SOCK_DGRAM ;   // UDP
 	
@@ -23,8 +31,9 @@ SteamQuery::SteamQuery(std::string server, std::string port)
 	send(socketfd, request, sizeof(request), 0);
 	setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 	recvsize = recv(socketfd, buffer, 1024, 0);
-	
-	if (recvsize != EWOULDBLOCK && recvsize != EAGAIN && recvsize != 0) {
+
+	if (recvsize != EWOULDBLOCK && recvsize != EAGAIN && recvsize > 15) {
+		
 		std::string raw = std::string(buffer, buffer + recvsize);
 		
 		response.header      = raw[4];
@@ -46,9 +55,9 @@ SteamQuery::SteamQuery(std::string server, std::string port)
 		response.enviroment  = raw[6];
 		response.visibility  = raw[7];
 		response.vac         = raw[8];
-
+		
 	} else {
-		err = "error: server timeout";
+		err = "error: server timeout or malformed response";
 	}
 	
 	freeaddrinfo(res);

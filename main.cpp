@@ -7,12 +7,9 @@ int main()
 	std::string server     = "irc.quakenet.org" ;
 	std::string port       = "6667"             ;
 	
-	std::string steamhost  = "papuwarfare.net"  ;
-	std::string steamport  = "27016"            ;
-	
 	std::string owner      = "viderizer"        ;
 
-	IrcBot ircbot(nick, channel, server, port, steamhost, steamport, owner);
+	IrcBot ircbot(nick, channel, server, port, owner);
 
 	return 0;
 }

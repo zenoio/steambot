@@ -1,12 +1,10 @@
 #include "ircbot.h"
 #include "steamquery.h"
 
-IrcBot::IrcBot(std::string nick, std::string channel_, std::string server, std::string port, std::string steamhost_, std::string steamport_, std::string owner_)
+IrcBot::IrcBot(std::string nick, std::string channel_, std::string server, std::string port, std::string owner_)
 {
 	owner = owner_;
 	channel = channel_;
-	steamhost = steamhost_;
-	steamport = steamport_;
 	joined = false;
 	connectionClosed = false;
 	int status, recvsize;
@@ -93,9 +91,9 @@ void IrcBot::messageHandler(std::string nick, std::string msg, std::string chan)
 	std::transform(chan.begin(), chan.end(), chan.begin(), ::tolower);
 	
 	if (msg.find("!p") == 0 || msg.find("!players") == 0) {
-		SteamQuery query(steamhost, steamport);
+		SteamQuery query("config.cfg");
 		if (query.err.empty()) {
-			sendMsg("[" + query.response.game + "] - " + std::to_string((int)query.response.cur[0]) + " / " + std::to_string((int)query.response.max[0]), chan);
+			sendMsg("Players for [" + query.response.game + "]: " + std::to_string((int)query.response.cur[0]) + " / " + std::to_string((int)query.response.max[0]), chan);
 		} else {
 			sendMsg(query.err, chan);
 		}

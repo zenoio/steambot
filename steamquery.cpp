@@ -71,4 +71,11 @@ void SteamQuery::parseResponse(std::string raw)
 	response.enviroment  = raw[6];
 	response.visibility  = raw[7];
 	response.vac         = raw[8];
+	
+	if (response.enviroment == "w")
+		response.enviroment = "windows";
+	else if (response.enviroment == "l")
+		response.enviroment = "linux";
+	else if (response.enviroment == "o" || response.enviroment == "m")
+		response.enviroment = "osx";
 }

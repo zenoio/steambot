@@ -93,7 +93,7 @@ void IrcBot::messageHandler(std::string nick, std::string msg, std::string chan)
 	if (msg.find("!p") == 0 || msg.find("!players") == 0) {
 		SteamQuery query("config.cfg");
 		if (query.err.empty()) {
-			sendMsg("Players for [" + query.response.game + "]: " + std::to_string((int)query.response.cur[0]) + " / " + std::to_string((int)query.response.max[0]), chan);
+			sendMsg("players: " + std::to_string((int)query.response.cur[0]) + " / " + std::to_string((int)query.response.max[0]) + " -- other info - name: " + query.response.name + " - os: " + query.response.enviroment, chan);
 		} else {
 			sendMsg(query.err, chan);
 		}

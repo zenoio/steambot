@@ -13,6 +13,17 @@
 class IrcBot
 {
 private:
+	struct server_info {
+		std::string prefix;
+		std::string server;
+		std::string port;
+		inline server_info(std::string p, std::string s, std::string po) {
+			prefix = p;
+			server = s;
+			port = po;
+		}
+	};
+
 	void sendRaw(std::string msg);
 	void sendMsg(std::string, std::string chan);
 	void recievedMessage(std::string msg);

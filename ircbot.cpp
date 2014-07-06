@@ -15,7 +15,7 @@ IrcBot::IrcBot(std::vector<std::string> cfg_)
 	info.ai_family   = AF_UNSPEC;   // IPV4/IPV6
 	info.ai_socktype = SOCK_STREAM; // TCP
 	
-	status = getaddrinfo(cfg[4].c_str(), cfg[5].c_str(), &info, &res);
+	status = getaddrinfo(cfg[3].c_str(), cfg[4].c_str(), &info, &res);
 	if (status != 0)
 		connectionClosed = true;
 	socketfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
@@ -23,8 +23,8 @@ IrcBot::IrcBot(std::vector<std::string> cfg_)
 	if (status != 0)
 		connectionClosed = true;
 	
-	sendRaw("USER " + cfg[2] + " 0 * :" + cfg[2]);
-	sendRaw("NICK " + cfg[2]);
+	sendRaw("USER " + cfg[1] + " 0 * :" + cfg[1]);
+	sendRaw("NICK " + cfg[1]);
 	
 	while (!connectionClosed) {
 		recvsize = recv(socketfd, buffer, 1024, 0);
@@ -70,7 +70,7 @@ void IrcBot::recievedMessage(std::string msg)
 		if (lines[i].find("PING") == 0) {
 			sendRaw("PONG :" + lines[i].substr(lines[i].find(":") + 1, std::string::npos));
 		} else if (!joined && lines[i].substr(lines[i].find(" ") + 1, 3) == "001") {
-			sendRaw("JOIN " + cfg[3]);
+			sendRaw("JOIN " + cfg[2]);
 			joined = true;
 		} else if (lines[i].find("PRIVMSG") == lines[i].find(" ") + 1) {
 			std::string nick = lines[i].substr(1, lines[i].find("!") - 1);
@@ -89,15 +89,44 @@ void IrcBot::messageHandler(std::string nick, std::string msg, std::string chan)
 	std::transform(msg.begin(), msg.end(), msg.begin(), ::tolower);
 	std::transform(chan.begin(), chan.end(), chan.begin(), ::tolower);
 	
-	if (msg.find("!p") == 0 || msg.find("!players") == 0) {
-		SteamQuery query(cfg[0], cfg[1]);
-		if (query.err.empty()) {
-			sendMsg("players: " + std::to_string((int)query.response.cur[0]) + " / " + std::to_string((int)query.response.max[0]) + " -- other info - name: " + query.response.name + " - os: " + query.response.enviroment, chan);
-		} else {
-			sendMsg(query.err, chan);
-		}
-	} else if (nick == cfg[6] && msg.find("!q") == 0) {
-		sendRaw("QUIT :b-b-baka " + cfg[6] + "!!");
+	if (msg.find("!p") == 0) {
+		if (msg.length() > 3)
+			msg = msg.substr(2, std::string::npos);
+		else
+			msg = "";
+		std::ifstream file(cfg[0]);
+		if (file.is_open()) {
+			std::vector<server_info> servers;
+			std::string temp;
+			while (getline(file, temp)) {
+				std::string prefix = (" " + temp.substr(0, temp.find(":")));
+				std::string server = temp.substr(temp.find(":") + 1, (temp.find(":", temp.find(":") + 1) - temp.find(":")) - 1);
+				std::string port = temp.substr(temp.find(":", temp.find(":") + 1) + 1, std::string::npos);
+				servers.push_back(server_info(prefix, server, port));
+			}
+			file.close();
+			
+			if (msg.empty()) {
+				SteamQuery query(servers[0].server, servers[0].port);
+				if (query.err.empty()) {
+					sendMsg("players: " + std::to_string((int)query.response.cur[0]) + " / " + std::to_string((int)query.response.max[0]) + " | " + query.response.name + " | " + query.response.map, chan);
+				} else
+					sendMsg(query.err, chan);
+			} else {
+				for (int i = 0; i < servers.size(); i++) {
+					if (servers[i].prefix == msg) {
+						SteamQuery query(servers[i].server, servers[i].port);
+						if (query.err.empty()) {
+							sendMsg("players: " + std::to_string((int)query.response.cur[0]) + " / " + std::to_string((int)query.response.max[0]) + " | " + query.response.name + " | " + query.response.map, chan);
+						} else
+							sendMsg(query.err, chan);
+					}
+				}
+			}
+		} else
+			sendMsg("error opening server list", chan);
+	} else if (nick == cfg[5] && msg.find("!q") == 0) {
+		sendRaw("QUIT :b-b-baka " + cfg[5] + "!!");
 		connectionClosed = true;
 	}
 }

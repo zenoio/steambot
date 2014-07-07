@@ -109,7 +109,7 @@ void IrcBot::messageHandler(std::string nick, std::string msg, std::string chan)
 			if (msg.empty()) {
 				SteamQuery query(servers[0].server, servers[0].port);
 				if (query.err.empty()) {
-					sendMsg("players: " + std::to_string((int)query.response.cur[0]) + " / " + std::to_string((int)query.response.max[0]) + " | " + query.response.name + " | " + query.response.map, chan);
+					sendMsg("players: " + std::to_string((int)query.response.cur) + " / " + std::to_string((int)query.response.max) + " | " + query.response.name + " | " + query.response.map + " | " + servers[0].server + ":" + std::to_string(query.response.edf_data.port), chan);
 				} else
 					sendMsg(query.err, chan);
 			} else {
@@ -117,7 +117,7 @@ void IrcBot::messageHandler(std::string nick, std::string msg, std::string chan)
 					if (servers[i].prefix == msg) {
 						SteamQuery query(servers[i].server, servers[i].port);
 						if (query.err.empty()) {
-							sendMsg("players: " + std::to_string((int)query.response.cur[0]) + " / " + std::to_string((int)query.response.max[0]) + " | " + query.response.name + " | " + query.response.map, chan);
+							sendMsg("players: " + std::to_string((int)query.response.cur) + " / " + std::to_string((int)query.response.max) + " | " + query.response.name + " | " + query.response.map + " | " + servers[i].server + ":" + std::to_string(query.response.edf_data.port), chan);
 						} else
 							sendMsg(query.err, chan);
 					}

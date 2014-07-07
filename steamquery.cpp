@@ -25,8 +25,8 @@ SteamQuery::SteamQuery(std::string server, std::string port)
 	recvsize = recv(socketfd, buffer, 1024, 0);
 	
 	if (recvsize != EWOULDBLOCK && recvsize != EAGAIN && recvsize > 15) {
-		if ((int)buffer[4] == 0x49)
-			parseResponse(std::string(buffer, buffer + recvsize));
+		if (buffer[4] == 0x49)
+			parseResponse(std::string(buffer, buffer + recvsize), port);
 		else
 			err = "error: malformed response";
 	} else
@@ -36,8 +36,8 @@ SteamQuery::SteamQuery(std::string server, std::string port)
 	close(socketfd);
 }
 
-void SteamQuery::parseResponse(std::string raw)
-{
+void SteamQuery::parseResponse(std::string raw, std::string &queryport)
+{	
 	response.header      = raw[4];
 	response.protocol    = raw[5];
 	raw = raw.substr(6, std::string::npos);
@@ -49,7 +49,7 @@ void SteamQuery::parseResponse(std::string raw)
 	raw = raw.substr(raw.find(std::string("\x00", 1)) + 1, std::string::npos);
 	response.game        = raw.substr(0, raw.find(std::string("\x00", 1)));
 	raw = raw.substr(raw.find(std::string("\x00", 1)) + 1, std::string::npos);
-	response.id          = raw.substr(0, 2);
+	response.id          = /*raw.substr(0, 2)*/ 0;
 	response.cur         = raw[2];
 	response.max         = raw[3];
 	response.bots        = raw[4];
@@ -57,11 +57,34 @@ void SteamQuery::parseResponse(std::string raw)
 	response.enviroment  = raw[6];
 	response.visibility  = raw[7];
 	response.vac         = raw[8];
-	
-	if (response.enviroment == "w")
-		response.enviroment = "windows";
-	else if (response.enviroment == "l")
-		response.enviroment = "linux";
-	else if (response.enviroment == "o" || response.enviroment == "m")
-		response.enviroment = "osx";
+	raw = raw.substr(9, std::string::npos);
+	response.version     = raw.substr(0, raw.find(std::string("\x00", 1)));
+	raw = raw.substr(raw.find(std::string("\x00", 1)) + 1, std::string::npos);
+	if (!raw.empty()) {
+		response.edf = raw[0];
+		raw = raw.substr(1, std::string::npos);
+		if (response.edf & 0x80) {
+			response.edf_data.port = ((unsigned char)raw[1] << 8) | (unsigned char)raw[0];
+			raw = raw.substr(2, std::string::npos);
+		} else
+			response.edf_data.port = (short)std::stol(queryport);
+		if (response.edf & 0x10) {
+			response.edf_data.steamid = /*raw.substr(0, 8)*/ 0;
+			raw = raw.substr(8, std::string::npos);
+		}
+		if (response.edf & 0x40) {
+			response.edf_data.sourcetv_port = ((unsigned char)raw[1] << 8) | (unsigned char)raw[0];
+			raw = raw.substr(2, std::string::npos);
+			response.edf_data.sourcetv_name = raw.substr(0, raw.find(std::string("\x00", 1)));
+			raw = raw.substr(raw.find(std::string("\x00", 1)) + 1, std::string::npos);
+		}
+		if (response.edf & 0x20) {
+			response.edf_data.keywords = raw.substr(0, raw.find(std::string("\x00", 1)));
+			raw = raw.substr(raw.find(std::string("\x00", 1)) + 1, std::string::npos);
+		}
+		if (response.edf & 0x01) {
+			response.edf_data.gameid = /*raw.substr(0, 8)*/ 0;
+		}
+	} else
+		response.edf_data.port = (short)std::stol(queryport);
 }

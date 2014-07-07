@@ -14,24 +14,50 @@ class SteamQuery
 {
 public:
 	struct steam_response { // https://developer.valvesoftware.com/wiki/Server_queries
-		std::string header;
-		std::string protocol;
+		unsigned char header;
+		unsigned char protocol;
 		std::string name;
 		std::string map;
 		std::string folder;
 		std::string game;
-		std::string id;
-		std::string cur;
-		std::string max;
-		std::string bots;
-		std::string servertype;
-		std::string enviroment;
-		std::string visibility;
-		std::string vac;
+		short id;
+		unsigned char cur;
+		unsigned char max;
+		unsigned char bots;
+		unsigned char servertype;
+		unsigned char enviroment;
+		unsigned char visibility;
+		unsigned char vac;
+		std::string version;
+		unsigned char edf;
+		struct edf_data {
+			short port;
+			long long steamid;
+			short sourcetv_port;
+			std::string sourcetv_name;
+			std::string keywords;
+			long long gameid;
+		} edf_data;
+	};
+	
+	struct arma_keywords {
+		std::string battleeye;
+		std::string requiredversion;
+		std::string requiredbuildno;
+		std::string serverstate;
+		std::string difficulty;
+		std::string equalmodrequired;
+		std::string lock;
+		std::string verifysignatures;
+		std::string dedicated;
+		std::string gametype;
+		std::string language;
+		std::string longlat;
+		std::string platform;
 	};
 	
 	SteamQuery(std::string server, std::string port);
-	void parseResponse(std::string raw);
+	void parseResponse(std::string raw, std::string &queryport);
 	std::string err;
 	steam_response response;
 };

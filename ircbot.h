@@ -5,6 +5,7 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
+#include <regex>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>

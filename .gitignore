@@ -1,2 +1,4 @@
 steambot*
 *.o
+config.cfg
+servers.cfg

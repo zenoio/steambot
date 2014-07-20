@@ -1,5 +1,6 @@
 #include "ircbot.h"
 #include "steamquery.h"
+#include "httprequest.h"
 
 IrcBot::IrcBot(std::vector<std::string> cfg_)
 {
@@ -125,6 +126,15 @@ void IrcBot::messageHandler(std::string nick, std::string msg, std::string chan)
 			}
 		} else
 			sendMsg("error opening server list", chan);
+	} else if (std::regex_search(msg, std::regex("(https?:\\/\\/)([a-zA-Z.0-9-]+)(\\/?)([a-zA-Z0-9~_\\/?=#&.-]+)?"))) {
+		std::smatch m;
+		std::regex_search(msg, m, std::regex("(https?:\\/\\/)([a-zA-Z.0-9-]+)(\\/?)([a-zA-Z0-9~_\\/?=#.-]+)?"));
+		HttpRequest query(m[2], "80", m[4]);
+		if (query.err.empty()) {
+			sendMsg("title: " + query.title, chan);
+		} else {
+			sendMsg(query.err, chan);
+		}
 	} else if (nick == cfg[5] && msg.find("!q") == 0) {
 		sendRaw("QUIT :b-b-baka " + cfg[5] + "!!");
 		connectionClosed = true;
